@@ -19,7 +19,8 @@ type URL struct {
 
 // Тестовое подключение к базе (чтобы ждать, пока она будет готова)
 func TestDBConnection() bool {
-	dsn := "host=localhost user=myuser password=mypassword dbname=shortener port=5432 sslmode=disable"
+	dsn := "host=db user=myuser password=mypassword dbname=shortener port=5432 sslmode=disable"
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Println("⚠️ База данных недоступна, пробуем снова...")
@@ -32,7 +33,7 @@ func TestDBConnection() bool {
 
 // Подключение к базе данных
 func InitDB() {
-	dsn := "host=localhost user=myuser password=mypassword dbname=shortener port=5432 sslmode=disable"
+	dsn := "host=db user=myuser password=mypassword dbname=shortener port=5432 sslmode=disable"
 
 	// Проверяем, если уже подключены, то не переподключаемся
 	if DB != nil {

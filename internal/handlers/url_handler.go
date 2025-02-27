@@ -2,45 +2,66 @@ package handlers
 
 import (
 	"GoUrlShortener/internal/repository"
-	"GoUrlShortener/internal/services"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"math/rand"
 	"net/http"
+	"time"
 )
 
-// Обработчик POST-запроса для сокращения URL
-func ShortenURL(c *gin.Context) {
-	var req struct {
-		URL string `json:"url" binding:"required"` // JSON-поле "url" обязательно
-	}
+// 📝 Структуры для работы с запросами и ответами
+type ShortenRequest struct {
+	URL string `json:"url"`
+}
 
-	// Проверяем корректность входных данных
+type ShortenResponse struct {
+	ShortURL string `json:"short_url"`
+}
+
+// 📌 Обработчик создания короткого URL
+func ShortenURL(c *gin.Context) {
+	var req ShortenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "❌ Invalid request, URL is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Некорректный запрос"})
 		return
 	}
 
-	// Генерируем короткий URL
-	short := services.GenerateShortURL(req.URL)
+	// Генерируем короткий код
+	shortCode := generateShortCode()
 
-	// Сохраняем его в базе данных
-	repository.SaveURL(short, req.URL)
+	// Записываем в базу данных
+	url := repository.URL{ShortURL: shortCode, Original: req.URL}
+	if err := repository.DB.Create(&url).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка сохранения URL"})
+		return
+	}
 
-	// Возвращаем пользователю короткий URL
-	c.JSON(http.StatusOK, gin.H{"short_url": fmt.Sprintf("http://localhost:8080/%s", short)})
+	// Возвращаем клиенту сокращённый URL
+	c.JSON(http.StatusOK, ShortenResponse{ShortURL: fmt.Sprintf("http://localhost:8080/%s", shortCode)})
 }
 
-// Обработчик GET-запроса для редиректа по короткому URL
+// 📌 Обработчик редиректа по короткому URL
 func RedirectURL(c *gin.Context) {
-	shortURL := c.Param("shortURL") // Получаем короткий URL из параметров пути
+	shortURL := c.Param("shortURL")
 
-	// Получаем оригинальный URL из базы данных
-	originalURL, err := repository.GetOriginalURL(shortURL)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "❌ URL not found"})
+	// Ищем оригинальный URL в БД
+	var url repository.URL
+	if err := repository.DB.Where("short_url = ?", shortURL).First(&url).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "URL не найден"})
 		return
 	}
 
 	// Делаем редирект на оригинальный URL
-	c.Redirect(http.StatusMovedPermanently, originalURL)
+	c.Redirect(http.StatusMovedPermanently, url.Original)
+}
+
+// 🔧 Функция генерации случайного кода для короткой ссылки
+func generateShortCode() string {
+	rand.Seed(time.Now().UnixNano())
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	short := make([]byte, 6)
+	for i := range short {
+		short[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(short)
 }
