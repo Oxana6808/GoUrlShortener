@@ -16,7 +16,7 @@
 ### 🛠 Установка и запуск
 1️⃣ **Клонировать репозиторий**
 ```sh
- git clone https://github.com/ТВОЙ_GITHUB/GoUrlShortener.git
+ git clone https://github.com/Oxana6808/GoUrlShortener.git
  cd GoUrlShortener
 ```
 
@@ -38,51 +38,9 @@ docker ps
 
 ## 🔗 API
 
-### 1️⃣ Сокращение ссылки
-**POST** `/shorten`
-
-📌 **Запрос:**
-```json
-{
-    "url": "https://example.com"
-}
+```sh
+Invoke-WebRequest -Uri "http://localhost:8080/shorten" -Method Post -Headers @{"Content-Type"="application/json"} -Body '{"url":"https://google.com"}'
 ```
-
-📌 **Ответ:**
-```json
-{
-    "short_url": "http://localhost:8080/abc123"
-}
-```
-
-### 2️⃣ Перенаправление по короткому URL
-**GET** `/:shortURL`
-
-📌 **Пример запроса:**
-```
-GET http://localhost:8080/abc123
-```
-
-📌 **Ожидаемый результат:** редирект на `https://example.com`
-
----
-
-## 📂 Структура проекта
-```
-url-shortener/
-│── cmd/
-│── internal/
-│   ├── handlers/       # Обработчики API
-│   ├── repository/     # Работа с БД
-│── config/             # Конфигурация
-│── main.go             # Точка входа
-│── go.mod              # Go модули
-│── Dockerfile          # Docker конфигурация
-│── docker-compose.yml  # Запуск через Docker
-│── README.md           # Документация
-```
-
----
 
 ## 🛠 Используемые технологии
 - **Go** (Gin, Gorm)

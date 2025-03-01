@@ -23,7 +23,7 @@ func TestDBConnection() bool {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		fmt.Println("⚠️ База данных недоступна, пробуем снова...")
+		fmt.Println("️ База данных недоступна, пробуем снова...")
 		return false
 	}
 	sqlDB, _ := db.DB()
@@ -44,13 +44,18 @@ func InitDB() {
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("❌ Ошибка подключения к базе данных:", err)
+		log.Fatal("Ошибка подключения к базе данных:", err)
 	}
-	fmt.Println("✅ Подключение к базе данных установлено!")
+	fmt.Println("Подключение к базе данных установлено!")
 
 	// Выполняем автоматическое создание таблицы
 	if err := DB.AutoMigrate(&URL{}); err != nil {
-		log.Fatal("❌ Ошибка миграции базы данных:", err)
+		log.Fatal("Ошибка миграции базы данных:", err)
 	}
-	fmt.Println("✅ Таблица успешно создана или уже существует!")
+	fmt.Println("Таблица успешно создана или уже существует!")
+
+	if err := DB.AutoMigrate(&URL{}); err != nil {
+		log.Fatalf("❌ Ошибка миграции БД: %v", err)
+	}
+
 }
